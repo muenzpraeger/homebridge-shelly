@@ -1,11 +1,28 @@
 const EventEmitter = require('events')
 
+// Mirrors the HAP-NodeJS 1.x/2.x (Homebridge 2.x) API surface: Categories,
+// Formats and Perms are top-level exports of `hap`, and the deprecated
+// aliases (Accessory.Categories, Characteristic.Formats/Perms, Perms.READ,
+// Service.BatteryService) no longer exist.
 class Accessory {}
-Accessory.Categories = {
-  LIGHTBULB: 'LIGHTBULB',
-  SENSOR: 'SENSOR',
-  SWITCH: 'SWITCH',
-  WINDOW_COVERING: 'WINDOW_COVERING',
+
+const Categories = {
+  OTHER: 1,
+  LIGHTBULB: 5,
+  OUTLET: 7,
+  SWITCH: 8,
+  SENSOR: 10,
+  WINDOW_COVERING: 14,
+}
+
+const Formats = {
+  FLOAT: 'float',
+}
+
+const Perms = {
+  PAIRED_READ: 'pr',
+  PAIRED_WRITE: 'pw',
+  NOTIFY: 'ev',
 }
 
 class Characteristic extends EventEmitter {
@@ -191,16 +208,6 @@ class TargetPosition extends Characteristic {
 }
 Characteristic.TargetPosition = TargetPosition
 
-Characteristic.Formats = {
-  FLOAT: 'FLOAT',
-}
-
-Characteristic.Perms = {
-  NOTIFY: 'NOTIFY',
-  READ: 'READ',
-  WRITE: 'WRITE',
-}
-
 class PlatformAccessory extends EventEmitter {
   constructor(displayName, UUID) {
     super()
@@ -208,7 +215,6 @@ class PlatformAccessory extends EventEmitter {
     this.displayName = displayName
     this.UUID = UUID
     this.services = new Map()
-    this.reachability = false
 
     this.addService(new Service.AccessoryInformation())
   }
@@ -219,10 +225,6 @@ class PlatformAccessory extends EventEmitter {
 
   addService(service) {
     this.services.set(service.constructor, service)
-  }
-
-  updateReachability(value) {
-    this.reachability = value
   }
 }
 
@@ -273,7 +275,7 @@ class AccessoryInformation extends Service {
 }
 Service.AccessoryInformation = AccessoryInformation
 
-class BatteryService extends Service {
+class Battery extends Service {
   constructor() {
     super()
 
@@ -282,7 +284,7 @@ class BatteryService extends Service {
     this.addCharacteristic(StatusLowBattery)
   }
 }
-Service.BatteryService = BatteryService
+Service.Battery = Battery
 
 class HumiditySensor extends Service {
   constructor() {
@@ -369,7 +371,10 @@ class Homebridge extends EventEmitter {
 
     this.hap = {
       Accessory,
+      Categories,
       Characteristic,
+      Formats,
+      Perms,
       Service,
       uuid: {
         generate: () => {},

@@ -22,5 +22,12 @@ describe('ConsumptionCharacteristic', function() {
       char.props.format.should.be.ok()
       char.props.perms.should.be.ok()
     })
+
+    it('should be readable and notify', function() {
+      const { Formats, Perms } = homebridge.hap
+      const char = new ConsumptionCharacteristic()
+      char.props.format.should.equal(Formats.FLOAT)
+      char.props.perms.should.eql([Perms.PAIRED_READ, Perms.NOTIFY])
+    })
   })
 })
